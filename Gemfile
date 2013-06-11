@@ -7,6 +7,7 @@ gem 'pg'
 gem 'haml-rails'
 gem 'compass-rails'
 gem 'configus', :git => 'git://github.com/relev/configus.git'
+gem 'savon', '~> 2.2.0'
 
 # Gems used only for assets and not required
 # in production environments by default.
