@@ -1,7 +1,7 @@
 namespace :import do
 
   desc "Импорт from spraci.com"
-  task :soap => :environment do
+  task :events => :environment do
     spraci = SpraciService.new
     p spraci.client.operations
     #response = client.call :event_list, message: {
