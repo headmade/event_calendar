@@ -21,7 +21,7 @@ namespace :import do
           puts [event_hash[:event_id], event_hash[:name]].inspect
           event = Event.find_by_event_id(event_hash[:event_id])
           if event
-            puts "almost exists!"
+            puts "already exists!"
           else
             new_elements_count += 1
             Event.create(event_hash)
@@ -47,7 +47,7 @@ namespace :import do
           puts [area_hash[:area_id], area_hash[:name]].inspect
           area = Area.find_by_area_id(area_hash[:area_id])
           if area
-            puts "almost exists!"
+            puts "already exists!"
           else
             Area.create(area_hash)
           end
