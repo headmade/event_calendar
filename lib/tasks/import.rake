@@ -9,8 +9,10 @@ namespace :import do
       loop do
         new_elements_count = 0
         events = spraci.get_event_list(area_id, page)
-        puts "no event found in N#{area_id} area" if events.blank? && page == 1
-        break if events.blank?
+        if events.blank?
+          puts "no event found in N#{area_id} area" if page == 1
+          break
+        end
 
         puts "#{events.count} elements found in N#{area_id} area, page N#{page}"
         events.each do |event_hash|
