@@ -1,18 +1,9 @@
-module Savon
-    class Response
-      def to_xml
-        @http.body.gsub /[\w\W\n]*?(<\?xml)/,'<?xml'
-      end
-    end
-end
 namespace :import do
 
   desc "Импорт from spraci.com"
   task :soap => :environment do
-    require 'savon'
-    client = Savon.client(wsdl: 'http://www.spraci.com/services/soap/index.php?wsdl')
-
-    p client.operations
+    spraci = SpraciService.new
+    p spraci.client.operations
     #response = client.call :event_list, message: {
       #appkey: '',
       #username: '',
@@ -25,27 +16,30 @@ namespace :import do
       #page:'',
       #per_page:'',
       #area: 'x0x0'}
-    response =client.call :event_list, advanced_typecasting: false, xml: "<?xml version='1.0' encoding='utf-8'?>
-    <soap:Envelope xmlns:soap='http://schemas.xmlsoap.org/soap/envelope/' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns:xsd='http://www.w3.org/2001/XMLSchema'>
-    <soap:Body>
-    <event_list xmlns='http://www.spraci.com/services/soap/'>
-    <data>
-    <appkey></appkey>
-    <username></username>
-    <password></password>
-    <area>x0sydney</area>
-    <tag></tag>
-    <user_id></user_id>
-    <user_name></user_name>
-    <searchtext></searchtext>
-    <page></page>
-    <per_page>50</per_page>
-    <type></type>
-    </data>
-    </event_list>
-    </soap:Body>
-    </soap:Envelope>"
+    response = spraci.get_event_list(1, 1)
     p response.body
 
+  end
+
+  desc "Импорт всех Area"
+  task :areas => :environment do
+    spraci = SpraciService.new
+    50.upto(100) do |area_id|
+      areas = spraci.get_area_list(area_id)
+      if areas
+        puts "#{areas.count} elements found in N#{area_id} area"
+        areas.each do |area_hash|
+          puts [area_hash[:area_id], area_hash[:name]].inspect
+          area = Area.find_by_area_id(area_hash[:area_id])
+          if area.present?
+            puts "almost exists!"
+          else
+            Area.create(area_hash)
+          end
+        end
+      else
+        puts "no element found in N#{area_id} area"
+      end
+    end
   end
 end
