@@ -29,9 +29,12 @@ class SpraciService < BaseService
 
   def get_event_list(area, page)
     response = client.call :event_list, advanced_typecasting: false, xml: event_request_xml(area, page)
-    items = response.body[:event_list_response][:return][:item]
-    items.each do |item|
-      self.class.prepare_event_attributes(item)
+    items = response.body[:event_list_response][:return][:item] if response.body[:event_list_response][:return].present?
+    if items
+      items = [items] unless items.is_a?(Array)
+      items.each do |item|
+        self.class.prepare_event_attributes(item)
+      end
     end
     items
   end

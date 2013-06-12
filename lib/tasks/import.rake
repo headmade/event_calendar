@@ -1,27 +1,40 @@
 namespace :import do
 
-  desc "Импорт from spraci.com"
+  desc "Импорт Event from spraci.com"
   task :events => :environment do
     spraci = SpraciService.new
-    p spraci.client.operations
-    #response = client.call :event_list, message: {
-      #appkey: '',
-      #username: '',
-      #type:'',
-      #tag:'',
-      #user_id:'',
-      #venue_id:'',
-      #user_name:'',
-      #searchtext:'',
-      #page:'',
-      #per_page:'',
-      #area: 'x0x0'}
-    response = spraci.get_event_list(1, 1)
-    p response.body
+    page = 1
+    area_ids = [4]
+    area_ids.each do |area_id|
+      loop do
+        new_elements_count = 0
+        events = spraci.get_event_list(area_id, page)
+        puts "no event found in N#{area_id} area" if events.blank? && page == 1
+        break if events.blank?
 
+        puts "#{events.count} elements found in N#{area_id} area, page N#{page}"
+        events.each do |event_hash|
+          # TODO: добавить условие, что мы отбираем события не более чем через год от сегодня
+          # break if event_hash[:start_date]
+          puts [event_hash[:event_id], event_hash[:name]].inspect
+          event = Event.find_by_event_id(event_hash[:event_id])
+          if event
+            puts "almost exists!"
+          else
+            new_elements_count += 1
+            Event.create(event_hash)
+          end
+        end
+
+        puts "new elements found: #{new_elements_count}"
+        break if new_elements_count == 0
+        page += 1
+      end
+      puts "page count: #{page}"
+    end
   end
 
-  desc "Импорт всех Area"
+  desc "Импорт Area from spraci.com"
   task :areas => :environment do
     spraci = SpraciService.new
     50.upto(100) do |area_id|
@@ -31,7 +44,7 @@ namespace :import do
         areas.each do |area_hash|
           puts [area_hash[:area_id], area_hash[:name]].inspect
           area = Area.find_by_area_id(area_hash[:area_id])
-          if area.present?
+          if area
             puts "almost exists!"
           else
             Area.create(area_hash)
